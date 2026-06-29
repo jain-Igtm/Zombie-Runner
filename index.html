@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#0d1117" />
+  <title>Zombie Runner</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="game-shell">
+    <canvas id="game-canvas"></canvas>
+
+    <section id="start-screen" class="panel visible">
+      <div class="title-stack">
+        <p class="eyebrow">Strawberry Games</p>
+        <h1>Zombie Runner</h1>
+        <p class="subtitle">Mobile survival FPS. Hold the yard, clear the waves, and stay moving.</p>
+      </div>
+      <button id="start-button" class="primary-button">Tap to Start</button>
+      <p class="hint">Left thumb moves. Right side looks. Big action button tags enemies. Reload when empty.</p>
+    </section>
+
+    <section id="game-over-screen" class="panel">
+      <div class="title-stack">
+        <p class="eyebrow danger">Overrun</p>
+        <h2 id="final-round">Round 1</h2>
+        <p id="final-score">0 clears</p>
+      </div>
+      <button id="restart-button" class="primary-button">Run Again</button>
+    </section>
+
+    <div id="hud" class="hud hidden">
+      <div class="hud-row top">
+        <div class="stat-card"><span>Round</span><strong id="round-value">1</strong></div>
+        <div class="stat-card"><span>Score</span><strong id="score-value">0</strong></div>
+        <div class="stat-card"><span>Active</span><strong id="active-value">0</strong></div>
+      </div>
+      <div class="hud-row bottom">
+        <div class="health-bar"><span id="health-fill"></span><em id="health-text">100</em></div>
+        <div class="ammo-card"><strong id="ammo-value">30 / 90</strong><span id="tool-state">RUNNER CARBINE</span></div>
+      </div>
+      <div id="crosshair" aria-hidden="true"></div>
+      <div id="feedback-vignette"></div>
+      <div id="round-banner"></div>
+    </div>
+
+    <div id="touch-layer" class="hidden">
+      <div id="move-stick" class="stick"><div class="nub"></div></div>
+      <div id="look-zone"></div>
+      <button id="action-button" class="combat-button action">FIRE</button>
+      <button id="reload-button" class="combat-button reload">RELOAD</button>
+      <button id="sprint-button" class="combat-button sprint">SPRINT</button>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
