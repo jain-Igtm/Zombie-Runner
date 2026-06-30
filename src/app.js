@@ -1,24 +1,26 @@
 (() => {
   'use strict';
 
-  const VERSION = 'babylon-static-002';
+  const VERSION = 'babylon-static-003';
   const CFG = {
-    world: { half: 82, radius: 1.05, height: 2.15, fogStart: 26, fogEnd: 138 },
-    player: { walk: 10.4, sprint: 15.7, health: 100, regenDelay: 5.75, regen: 4.2 },
-    tool: { name: 'RUNNER CARBINE', mag: 30, reserve: 90, power: 38, focusPower: 92, range: 104, delay: 0.115, reload: 1.2, kick: 0.026, spread: 0.015 },
-    mob: { health: 76, hpRound: 13, speed: 3.0, speedRound: 0.13, touch: 1.7, contact: 14, contactDelay: 0.78 },
-    rounds: { base: 6, add: 4, spawn: 0.7, grace: 1.25, gap: 4.0, activeBase: 7, activeScale: 2 }
+    world: { half: 86, radius: 1.05, height: 2.15, fogStart: 24, fogEnd: 145 },
+    player: { walk: 11.2, sprint: 16.4, health: 100, regenDelay: 5.5, regen: 4.5 },
+    tool: { name: 'RUNNER CARBINE', mag: 32, reserve: 96, power: 40, focusPower: 96, range: 112, delay: 0.105, reload: 1.15, kick: 0.024, spread: 0.014 },
+    mob: { health: 74, hpRound: 12, speed: 3.15, speedRound: 0.14, touch: 1.7, contact: 14, contactDelay: 0.78 },
+    rounds: { base: 7, add: 4, spawn: 0.68, grace: 1.0, gap: 3.6, activeBase: 8, activeScale: 2 },
+    pickups: { count: 6, radius: 2.2 }
   };
 
   const $ = (id) => document.getElementById(id);
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const rand = (a, b) => a + Math.random() * (b - a);
-  const c3 = (hex) => new BABYLON.Color3(((hex >> 16) & 255) / 255, ((hex >> 8) & 255) / 255, (hex & 255) / 255);
+  const color3 = (hex) => new BABYLON.Color3(((hex >> 16) & 255) / 255, ((hex >> 8) & 255) / 255, (hex & 255) / 255);
   const place = (node, x, y, z) => { node.position.x = x; node.position.y = y; node.position.z = z; return node; };
-  const material = (scene, name, hex, alpha = 1) => {
+  const makeMat = (scene, name, hex, alpha = 1, emissive = 0x000000) => {
     const m = new BABYLON.StandardMaterial(name, scene);
-    m.diffuseColor = c3(hex);
-    m.specularColor = c3(0x111111);
+    m.diffuseColor = color3(hex);
+    m.specularColor = color3(0x111111);
+    m.emissiveColor = color3(emissive);
     m.alpha = alpha;
     return m;
   };
@@ -39,9 +41,11 @@
       this.sprint = false;
       this.moveId = null;
       this.lookId = null;
+      this.baseX = 0;
+      this.baseY = 0;
       this.lastX = 0;
       this.lastY = 0;
-      this.sens = 0.0043;
+      this.sens = 0.0044;
       this.keys = new Set();
 
       this.stick = $('move-stick');
@@ -51,8 +55,7 @@
       this.reloadButton = $('reload-button');
       this.sprintButton = $('sprint-button');
 
-      this.stick.addEventListener('pointerdown', (e) => this.startMove(e));
-      this.lookZone.addEventListener('pointerdown', (e) => this.startLook(e));
+      window.addEventListener('pointerdown', (e) => this.pointerDown(e), { passive: false });
       window.addEventListener('pointermove', (e) => this.pointerMove(e), { passive: false });
       window.addEventListener('pointerup', (e) => this.pointerEnd(e));
       window.addEventListener('pointercancel', (e) => this.pointerEnd(e));
@@ -78,9 +81,28 @@
       });
     }
 
+    pointerDown(e) {
+      if (e.target && e.target.closest && e.target.closest('.combat-button')) return;
+      if (e.target && e.target.id === 'start-button') return;
+      const leftSide = e.clientX < window.innerWidth * 0.48;
+      if (leftSide && this.moveId === null) this.startMove(e);
+      else if (!leftSide && this.lookId === null) this.startLook(e);
+    }
+
     startMove(e) {
       e.preventDefault();
       this.moveId = e.pointerId;
+      const size = this.stick.offsetWidth || 132;
+      const minX = size / 2 + 10;
+      const maxX = Math.max(minX, window.innerWidth * 0.48 - size / 2 - 10);
+      const minY = size / 2 + 10;
+      const maxY = Math.max(minY, window.innerHeight - size / 2 - 10);
+      this.baseX = clamp(e.clientX, minX, maxX);
+      this.baseY = clamp(e.clientY, minY, maxY);
+      this.stick.style.left = `${this.baseX - size / 2}px`;
+      this.stick.style.top = `${this.baseY - size / 2}px`;
+      this.stick.style.bottom = 'auto';
+      this.stick.classList.add('active');
       this.updateStick(e.clientX, e.clientY);
     }
 
@@ -111,16 +133,16 @@
         this.move.x = 0;
         this.move.y = 0;
         this.nub.style.transform = 'translate(0px, 0px)';
+        this.stick.classList.remove('active');
         this.syncKeys();
       }
       if (e.pointerId === this.lookId) this.lookId = null;
     }
 
     updateStick(x, y) {
-      const rect = this.stick.getBoundingClientRect();
-      const max = rect.width * 0.33;
-      let dx = x - (rect.left + rect.width / 2);
-      let dy = y - (rect.top + rect.height / 2);
+      const max = (this.stick.offsetWidth || 132) * 0.35;
+      let dx = x - this.baseX;
+      let dy = y - this.baseY;
       const len = Math.hypot(dx, dy);
       if (len > max) {
         dx = dx / len * max;
@@ -166,16 +188,18 @@
       this.colliders = [];
       this.spawns = [];
       this.m = {
-        asphalt: material(scene, 'asphalt', 0x202427),
-        grass: material(scene, 'grass', 0x2f3c28),
-        concrete: material(scene, 'concrete', 0x6d7069),
-        brick: material(scene, 'brick', 0x7a493b),
-        rust: material(scene, 'rust', 0x8a5730),
-        metal: material(scene, 'metal', 0x596469),
-        dark: material(scene, 'dark metal', 0x202427),
-        yellow: material(scene, 'yellow paint', 0xd7c362),
-        glass: material(scene, 'dirty glass', 0x49606c, 0.72)
+        asphalt: makeMat(scene, 'asphalt', 0x202427),
+        grass: makeMat(scene, 'grass', 0x2f3c28),
+        concrete: makeMat(scene, 'concrete', 0x6d7069),
+        brick: makeMat(scene, 'brick', 0x7a493b),
+        rust: makeMat(scene, 'rust', 0x8a5730),
+        metal: makeMat(scene, 'metal', 0x596469),
+        dark: makeMat(scene, 'dark metal', 0x202427),
+        yellow: makeMat(scene, 'yellow paint', 0xd7c362),
+        glass: makeMat(scene, 'dirty glass', 0x49606c, 0.72),
+        warning: makeMat(scene, 'warning light', 0xff6535, 1, 0x441000)
       };
+      this.drones = [];
       this.build();
     }
 
@@ -184,17 +208,17 @@
       this.scene.fogMode = BABYLON.Scene.FOGMODE_LINEAR;
       this.scene.fogStart = CFG.world.fogStart;
       this.scene.fogEnd = CFG.world.fogEnd;
-      this.scene.fogColor = c3(0x101720);
+      this.scene.fogColor = color3(0x101720);
 
       const hemi = new BABYLON.HemisphericLight('overcast', new BABYLON.Vector3(0, 1, 0), this.scene);
-      hemi.intensity = 0.86;
-      hemi.diffuse = c3(0xbfd2ff);
-      hemi.groundColor = c3(0x252718);
+      hemi.intensity = 0.9;
+      hemi.diffuse = color3(0xbfd2ff);
+      hemi.groundColor = color3(0x252718);
 
       const moon = new BABYLON.DirectionalLight('moon', new BABYLON.Vector3(-0.55, -1, 0.38), this.scene);
       moon.position = new BABYLON.Vector3(48, 90, -60);
-      moon.intensity = 1.1;
-      moon.diffuse = c3(0xb8caff);
+      moon.intensity = 1.15;
+      moon.diffuse = color3(0xb8caff);
 
       const ground = BABYLON.MeshBuilder.CreateGround('finite asphalt yard', { width: this.half * 2, height: this.half * 2, subdivisions: 4 }, this.scene);
       ground.material = this.m.asphalt;
@@ -210,6 +234,7 @@
       this.buildings();
       this.props();
       this.spawnPoints();
+      this.airTraffic();
     }
 
     groundStrip(x, z, w, d) {
@@ -256,6 +281,7 @@
       this.box('vehicle bay', 54, 18, 18, 31, 10, this.m.metal);
       this.box('rust warehouse', -44, 34, 28, 22, 12, this.m.rust);
       this.box('admin hut', -7, 43, 24, 15, 8, this.m.concrete);
+      this.box('quarantine gatehouse', 8, -68, 18, 8, 5.5, this.m.dark);
       this.windowRow(-48, -44.2, 4, 4, 6.2);
       this.windowRow(43, -43.2, 4, 4.5, 7.1);
       this.windowRow(-44, 22.8, 5, 4.8, 6.5);
@@ -280,6 +306,7 @@
       [[-2.8, -2.8], [2.8, -2.8], [-2.8, 2.8], [2.8, 2.8]].forEach(([lx, lz]) => this.box('watchtower leg', x + lx, z + lz, 0.45, 0.45, 10, this.m.dark, 5, false));
       this.box('watchtower platform', x, z, 7.2, 7.2, 1, this.m.metal, 10.2, false);
       this.box('watchtower roof', x, z, 8.4, 8.4, 0.5, this.m.dark, 14.8, false);
+      this.box('watchtower beacon', x, z, 1, 1, 0.55, this.m.warning, 15.35, false);
       this.colliders.push({ x, z, w: 7.5, d: 7.5, name: 'watchtower' });
     }
 
@@ -290,9 +317,9 @@
       pole.isPickable = false;
       this.box('lamp head', x, z, 2.4, 1, 0.55, this.m.yellow, 7.25, false);
       const light = new BABYLON.PointLight(`lamp ${x} ${z}`, new BABYLON.Vector3(x, 6.2, z), this.scene);
-      light.diffuse = c3(0xffcf7a);
+      light.diffuse = color3(0xffcf7a);
       light.range = 24;
-      light.intensity = 0.15;
+      light.intensity = 0.17;
     }
 
     props() {
@@ -304,7 +331,7 @@
       this.box('concrete barricade', 0, -58, 17, 2, 1.2, this.m.concrete, 0.8);
       this.box('concrete barricade', -63, -12, 2, 17, 1.2, this.m.concrete, 0.8);
       this.box('concrete barricade', 63, 2, 2, 17, 1.2, this.m.concrete, 0.8);
-      for (let i = 0; i < 26; i += 1) {
+      for (let i = 0; i < 28; i += 1) {
         const x = rand(-66, 66);
         const z = rand(-66, 66);
         if ((Math.abs(x) > 10 || Math.abs(z) > 10) && !this.blocked(x, z, 2.8)) this.crate(x, z);
@@ -312,7 +339,7 @@
     }
 
     car(x, z, yaw, hex) {
-      const m = material(this.scene, `car mat ${x}`, hex);
+      const m = makeMat(this.scene, `car mat ${x}`, hex);
       const body = this.box('abandoned car body', x, z, 5.2, 8, 1.45, m, 0.78, false);
       body.rotation.y = yaw;
       const cabin = this.box('abandoned car cabin', x - Math.sin(yaw) * 0.35, z - Math.cos(yaw) * 0.35, 4.4, 3.4, 1.4, this.m.glass, 1.95, false);
@@ -325,6 +352,40 @@
       const crate = this.box('loose crate', x, z, size, size, size, this.m.rust, size / 2, false);
       crate.rotation.y = rand(0, Math.PI * 2);
       this.colliders.push({ x, z, w: size + 0.35, d: size + 0.35, name: 'crate' });
+    }
+
+    airTraffic() {
+      for (let i = 0; i < 3; i += 1) {
+        const root = new BABYLON.TransformNode(`cargo drone ${i}`, this.scene);
+        root.position.x = -90 - i * 45;
+        root.position.y = 22 + i * 5;
+        root.position.z = -46 + i * 32;
+        const body = BABYLON.MeshBuilder.CreateBox('drone body', { width: 8, height: 1.2, depth: 3.4 }, this.scene);
+        body.parent = root;
+        body.material = this.m.dark;
+        body.isPickable = false;
+        const pod = BABYLON.MeshBuilder.CreateBox('drone cargo pod', { width: 4, height: 1.8, depth: 2.6 }, this.scene);
+        place(pod, 0, -1.5, 0);
+        pod.parent = root;
+        pod.material = this.m.metal;
+        pod.isPickable = false;
+        const glow = BABYLON.MeshBuilder.CreateSphere('drone beacon', { diameter: 0.7, segments: 8 }, this.scene);
+        place(glow, 4.5, 0.05, 0);
+        glow.parent = root;
+        glow.material = this.m.warning;
+        glow.isPickable = false;
+        this.drones.push(root);
+      }
+    }
+
+    update(dt, time) {
+      for (let i = 0; i < this.drones.length; i += 1) {
+        const drone = this.drones[i];
+        drone.position.x += dt * (12 + i * 3);
+        drone.position.y += Math.sin(time * 0.0015 + i) * 0.01;
+        drone.rotation.y = Math.sin(time * 0.0007 + i) * 0.12;
+        if (drone.position.x > 105) drone.position.x = -105;
+      }
     }
 
     spawnPoints() {
@@ -361,14 +422,15 @@
   }
 
   class Enemy {
-    constructor(scene, world, spawn, round, mats) {
+    constructor(scene, world, spawn, round, mats, kind = 'walker') {
       this.scene = scene;
       this.world = world;
       this.mats = mats;
-      this.hp = CFG.mob.health + round * CFG.mob.hpRound;
+      this.kind = kind;
+      this.hp = CFG.mob.health + round * CFG.mob.hpRound + (kind === 'heavy' ? 70 : 0);
       this.maxHp = this.hp;
-      this.speed = CFG.mob.speed + round * CFG.mob.speedRound + rand(-0.15, 0.28);
-      this.radius = 0.88;
+      this.speed = CFG.mob.speed + round * CFG.mob.speedRound + (kind === 'runner' ? 1.35 : 0) - (kind === 'heavy' ? 0.65 : 0) + rand(-0.15, 0.28);
+      this.radius = kind === 'heavy' ? 1.15 : 0.88;
       this.clock = rand(0, CFG.mob.contactDelay);
       this.stagger = 0;
       this.age = 0;
@@ -377,6 +439,8 @@
       this.root = new BABYLON.TransformNode('runner foe', scene);
       this.root.position.copyFrom(spawn);
       this.body();
+      if (kind === 'runner') this.root.scaling.set(0.86, 0.92, 0.86);
+      if (kind === 'heavy') this.root.scaling.set(1.22, 1.16, 1.22);
     }
 
     target(mesh, zone, x, y, z, mat) {
@@ -390,7 +454,8 @@
     }
 
     body() {
-      this.target(BABYLON.MeshBuilder.CreateCylinder('foe torso', { height: 1.4, diameterTop: 0.82, diameterBottom: 0.68, tessellation: 10 }, this.scene), 'body', 0, 1.45, 0, this.mats.shirt);
+      const shirt = this.kind === 'heavy' ? this.mats.heavy : this.kind === 'runner' ? this.mats.runner : this.mats.shirt;
+      this.target(BABYLON.MeshBuilder.CreateCylinder('foe torso', { height: 1.4, diameterTop: 0.82, diameterBottom: 0.68, tessellation: 10 }, this.scene), 'body', 0, 1.45, 0, shirt);
       const focus = this.target(BABYLON.MeshBuilder.CreateSphere('foe focus', { diameter: 0.86, segments: 12 }, this.scene), 'focus', 0, 2.45, 0, this.mats.skin);
       focus.scaling.x = 0.92;
       focus.scaling.y = 1.08;
@@ -401,14 +466,12 @@
       this.limb(0.72, 1.52, -0.16, 0.23, 1.02, 0.42, -0.22, this.mats.skin, 'arm');
       this.limb(-0.28, 0.32, 0.02, 0.27, 0.88, 0, 0.08, this.mats.pants, 'leg');
       this.limb(0.28, 0.32, 0.02, 0.27, 0.88, 0, -0.08, this.mats.pants, 'leg');
-
       this.barBack = BABYLON.MeshBuilder.CreatePlane('foe bar back', { width: 1.35, height: 0.11 }, this.scene);
       place(this.barBack, 0, 3.18, 0);
       this.barBack.material = this.mats.barBack;
       this.barBack.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
       this.barBack.parent = this.root;
       this.barBack.isPickable = false;
-
       this.bar = BABYLON.MeshBuilder.CreatePlane('foe bar', { width: 1.28, height: 0.075 }, this.scene);
       place(this.bar, 0, 3.181, -0.003);
       this.bar.material = this.mats.barHigh;
@@ -435,14 +498,12 @@
       const inv = distance > 0.0001 ? 1 / distance : 0;
       const dirX = dx * inv;
       const dirZ = dz * inv;
-
       this.root.rotation.y = Math.atan2(dirX, dirZ);
       this.root.position.y = Math.sin(this.age * 7.4) * 0.035;
       this.parts.forEach((part, i) => {
         if (part.name.indexOf('arm') >= 0) part.rotation.x = 0.42 + Math.sin(this.age * 5.3 + i) * 0.18;
         if (part.name.indexOf('leg') >= 0) part.rotation.x = Math.sin(this.age * 7.2 + i) * 0.16;
       });
-
       if (distance > CFG.mob.touch) {
         const flank = Math.sin(this.age * 1.6) * 0.26;
         const speed = this.speed * (1 - this.stagger * 0.72) * dt;
@@ -454,11 +515,10 @@
         if (this.world.blocked(this.root.position.x, this.root.position.z, this.radius)) this.root.position.z = oldZ;
         return 0;
       }
-
       if (this.clock <= 0) {
         this.clock = CFG.mob.contactDelay;
         this.stagger = 0.36;
-        return CFG.mob.contact;
+        return this.kind === 'heavy' ? CFG.mob.contact + 8 : CFG.mob.contact;
       }
       return 0;
     }
@@ -487,6 +547,35 @@
     }
   }
 
+  class Pickup {
+    constructor(scene, x, z, type, mats) {
+      this.type = type;
+      this.taken = false;
+      this.root = new BABYLON.TransformNode(`pickup ${type}`, scene);
+      place(this.root, x, 0.65, z);
+      const box = BABYLON.MeshBuilder.CreateBox(`pickup box ${type}`, { width: 1.7, height: 0.75, depth: 1.7 }, scene);
+      box.parent = this.root;
+      box.material = type === 'ammo' ? mats.ammo : mats.med;
+      box.isPickable = false;
+      const glow = BABYLON.MeshBuilder.CreateTorus(`pickup ring ${type}`, { diameter: 2.15, thickness: 0.08, tessellation: 24 }, scene);
+      glow.parent = this.root;
+      glow.position.y = -0.45;
+      glow.material = type === 'ammo' ? mats.ammoGlow : mats.medGlow;
+      glow.isPickable = false;
+      this.meshes = [box, glow];
+    }
+
+    update(time) {
+      this.root.rotation.y = time * 0.0013;
+      this.root.position.y = 0.65 + Math.sin(time * 0.003 + this.root.position.x) * 0.08;
+    }
+
+    dispose() {
+      this.meshes.forEach((m) => m.dispose(false, true));
+      this.root.dispose();
+    }
+  }
+
   class Game {
     constructor() {
       this.canvas = $('game-canvas');
@@ -505,15 +594,12 @@
       this.feedback = $('feedback-vignette');
       this.finalRound = $('final-round');
       this.finalScore = $('final-score');
-
       this.booted = false;
       this.running = false;
       this.over = false;
       this.starting = false;
-
       $('start-button').addEventListener('click', () => this.start());
       $('restart-button').addEventListener('click', () => this.restart());
-
       window.addEventListener('error', (event) => {
         console.error(event.error || event.message);
         if (!this.booted) this.showBootError(event.message || 'Startup error');
@@ -532,20 +618,19 @@
         this.showBootError('Babylon.js did not load');
         return false;
       }
-
       this.engine = new BABYLON.Engine(this.canvas, true);
       this.engine.setHardwareScalingLevel(Math.max(1, (window.devicePixelRatio || 1) / 1.55));
       this.scene = new BABYLON.Scene(this.engine);
       this.camera = new BABYLON.FreeCamera('player camera', new BABYLON.Vector3(0, CFG.world.height, 50), this.scene);
       this.camera.minZ = 0.08;
-      this.camera.maxZ = 220;
+      this.camera.maxZ = 230;
       this.scene.activeCamera = this.camera;
-
       this.input = new Input();
       this.world = new World(this.scene);
       this.enemyMats = this.makeEnemyMats();
+      this.pickupMats = this.makePickupMats();
       this.enemies = [];
-
+      this.pickups = [];
       this.player = { pos: new BABYLON.Vector3(0, CFG.world.height, 50), yaw: Math.PI, pitch: 0, health: CFG.player.health, lastHit: -Infinity };
       this.round = 0;
       this.score = 0;
@@ -559,7 +644,6 @@
       this.reserve = CFG.tool.reserve;
       this.flashTime = 0;
       this.last = performance.now();
-
       this.makeTool();
       this.updateCamera();
       this.resize();
@@ -572,30 +656,38 @@
 
     makeEnemyMats() {
       return {
-        shirt: material(this.scene, 'foe shirt', 0x656743),
-        skin: material(this.scene, 'foe skin', 0x879762),
-        pants: material(this.scene, 'foe pants', 0x303846),
-        mark: material(this.scene, 'foe mark', 0x5b1010),
-        barBack: material(this.scene, 'bar back', 0x151515, 0.82),
-        barHigh: material(this.scene, 'bar high', 0xb6ff6b),
-        barMid: material(this.scene, 'bar mid', 0xffd166),
-        barLow: material(this.scene, 'bar low', 0xff5353)
+        shirt: makeMat(this.scene, 'foe shirt', 0x656743),
+        runner: makeMat(this.scene, 'foe runner', 0x697b50),
+        heavy: makeMat(this.scene, 'foe heavy', 0x5b4c36),
+        skin: makeMat(this.scene, 'foe skin', 0x879762),
+        pants: makeMat(this.scene, 'foe pants', 0x303846),
+        mark: makeMat(this.scene, 'foe mark', 0x5b1010),
+        barBack: makeMat(this.scene, 'bar back', 0x151515, 0.82),
+        barHigh: makeMat(this.scene, 'bar high', 0xb6ff6b),
+        barMid: makeMat(this.scene, 'bar mid', 0xffd166),
+        barLow: makeMat(this.scene, 'bar low', 0xff5353)
+      };
+    }
+
+    makePickupMats() {
+      return {
+        ammo: makeMat(this.scene, 'pickup ammo', 0xd8b24a, 1, 0x332300),
+        ammoGlow: makeMat(this.scene, 'pickup ammo glow', 0xffd166, 0.55, 0x553000),
+        med: makeMat(this.scene, 'pickup med', 0xc74949, 1, 0x330000),
+        medGlow: makeMat(this.scene, 'pickup med glow', 0xff6868, 0.55, 0x550000)
       };
     }
 
     makeTool() {
-      const body = material(this.scene, 'tool body', 0x25272a);
-      const metal = material(this.scene, 'tool metal', 0x4b5359);
-      const grip = material(this.scene, 'tool grip', 0x151617);
-      const flash = material(this.scene, 'tool flash', 0xffe39a, 0);
-      flash.emissiveColor = c3(0xffd073);
-
+      const body = makeMat(this.scene, 'tool body', 0x25272a);
+      const metal = makeMat(this.scene, 'tool metal', 0x4b5359);
+      const grip = makeMat(this.scene, 'tool grip', 0x151617);
+      const flash = makeMat(this.scene, 'tool flash', 0xffe39a, 0, 0xffd073);
       this.toolRoot = new BABYLON.TransformNode('held tool', this.scene);
       this.toolRoot.parent = this.camera;
       place(this.toolRoot, 0.58, -0.55, 1.0);
       this.toolRoot.rotation.x = -0.05;
       this.toolRoot.rotation.y = -0.08;
-
       const add = (mesh, mat, x, y, z, rx = 0) => {
         place(mesh, x, y, z);
         mesh.rotation.x = rx;
@@ -604,7 +696,6 @@
         mesh.isPickable = false;
         return mesh;
       };
-
       add(BABYLON.MeshBuilder.CreateBox('receiver', { width: 0.22, height: 0.22, depth: 1.0 }, this.scene), body, 0, 0, 0.28);
       add(BABYLON.MeshBuilder.CreateCylinder('barrel', { height: 0.78, diameterTop: 0.035, diameterBottom: 0.05, tessellation: 12 }, this.scene), metal, 0, 0.04, 0.96, Math.PI / 2);
       add(BABYLON.MeshBuilder.CreateBox('grip', { width: 0.16, height: 0.36, depth: 0.18 }, this.scene), grip, 0.02, -0.26, -0.02, -0.2);
@@ -619,7 +710,6 @@
       this.gameOverScreen.classList.remove('visible');
       this.hud.classList.remove('hidden');
       this.touchLayer.classList.remove('hidden');
-
       try {
         if (!this.boot()) {
           this.hud.classList.add('hidden');
@@ -642,7 +732,9 @@
     restart() {
       if (!this.booted) return this.start();
       this.enemies.forEach((enemy) => enemy.dispose());
+      this.pickups.forEach((pickup) => pickup.dispose());
       this.enemies = [];
+      this.pickups = [];
       this.player.pos.x = 0;
       this.player.pos.y = CFG.world.height;
       this.player.pos.z = 50;
@@ -674,8 +766,19 @@
       this.toSpawn = CFG.rounds.base + (round - 1) * CFG.rounds.add;
       this.spawnTimer = CFG.rounds.grace;
       this.roundGap = 0;
+      this.spawnPickups();
       this.banner(`Round ${round}`);
       this.updateHUD();
+    }
+
+    spawnPickups() {
+      while (this.pickups.length < CFG.pickups.count) {
+        const x = rand(-58, 58);
+        const z = rand(-58, 58);
+        if (!this.world.blocked(x, z, 2.5) && Math.hypot(x - this.player.pos.x, z - this.player.pos.z) > 14) {
+          this.pickups.push(new Pickup(this.scene, x, z, Math.random() > 0.35 ? 'ammo' : 'med', this.pickupMats));
+        }
+      }
     }
 
     banner(text) {
@@ -689,20 +792,22 @@
       const now = performance.now();
       const dt = Math.min((now - this.last) / 1000, 0.05);
       this.last = now;
-      if (this.running && !this.over) this.update(dt);
+      if (this.running && !this.over) this.update(dt, now);
       this.scene.render();
     }
 
-    update(dt) {
+    update(dt, now) {
       this.cooldown = Math.max(0, this.cooldown - dt);
       this.flashTime = Math.max(0, this.flashTime - dt);
       this.flash.material.alpha = this.flashTime > 0 ? clamp(this.flashTime * 12, 0, 0.88) : 0;
+      this.world.update(dt, now);
       this.look();
       this.move(dt);
       this.updateCamera();
       this.updateTool(dt);
       this.updateRounds(dt);
       this.updateEnemies(dt);
+      this.updatePickups(now);
       this.regen(dt);
       this.updateHUD();
     }
@@ -750,19 +855,17 @@
       this.flashTime = 0.08;
       this.toolRoot.rotation.x -= CFG.tool.kick;
       this.player.pitch = clamp(this.player.pitch + CFG.tool.kick * 0.18, -1.22, 1.15);
-
       const ray = this.camera.getForwardRay(CFG.tool.range);
       ray.direction.x += rand(-CFG.tool.spread, CFG.tool.spread);
       ray.direction.y += rand(-CFG.tool.spread, CFG.tool.spread);
       ray.direction.z += rand(-CFG.tool.spread, CFG.tool.spread);
       ray.direction.normalize();
-
       const hit = this.scene.pickWithRay(ray, (mesh) => mesh.metadata && mesh.metadata.enemy && !mesh.metadata.enemy.removed);
       if (!hit || !hit.hit || !hit.pickedMesh || !hit.pickedMesh.metadata) return;
       const enemy = hit.pickedMesh.metadata.enemy;
       const zone = hit.pickedMesh.metadata.zone;
       if (enemy.impact(zone === 'focus' ? CFG.tool.focusPower : CFG.tool.power)) {
-        this.score += 1;
+        this.score += enemy.kind === 'heavy' ? 3 : enemy.kind === 'runner' ? 2 : 1;
         this.enemies = this.enemies.filter((item) => !item.removed);
       }
     }
@@ -789,14 +892,15 @@
       if (this.spawned < this.toSpawn && this.enemies.length < maxActive) {
         this.spawnTimer -= dt;
         if (this.spawnTimer <= 0) {
-          this.enemies.push(new Enemy(this.scene, this.world, this.world.spawnAway(this.player.pos), this.round, this.enemyMats));
+          const kind = this.round >= 4 && this.spawned % 7 === 0 ? 'heavy' : this.round >= 2 && this.spawned % 3 === 0 ? 'runner' : 'walker';
+          this.enemies.push(new Enemy(this.scene, this.world, this.world.spawnAway(this.player.pos), this.round, this.enemyMats, kind));
           this.spawned += 1;
-          this.spawnTimer = Math.max(0.22, CFG.rounds.spawn - this.round * 0.025);
+          this.spawnTimer = Math.max(0.2, CFG.rounds.spawn - this.round * 0.025);
         }
       }
       if (this.spawned >= this.toSpawn && this.enemies.length === 0 && this.roundGap <= 0) {
         this.roundGap = CFG.rounds.gap;
-        this.reserve += Math.min(30, 8 + this.round * 3);
+        this.reserve += Math.min(36, 10 + this.round * 3);
         this.banner(`Round ${this.round} clear`);
       }
     }
@@ -805,6 +909,26 @@
       let contact = 0;
       for (const enemy of this.enemies) contact += enemy.update(dt, this.player.pos);
       if (contact > 0) this.hurt(contact);
+    }
+
+    updatePickups(now) {
+      for (const pickup of this.pickups) {
+        pickup.update(now);
+        const dx = pickup.root.position.x - this.player.pos.x;
+        const dz = pickup.root.position.z - this.player.pos.z;
+        if (dx * dx + dz * dz < CFG.pickups.radius * CFG.pickups.radius) {
+          if (pickup.type === 'ammo') {
+            this.reserve = Math.min(this.reserve + 36, 240);
+            this.banner('Ammo recovered');
+          } else {
+            this.player.health = Math.min(CFG.player.health, this.player.health + 34);
+            this.banner('Med kit recovered');
+          }
+          pickup.taken = true;
+          pickup.dispose();
+        }
+      }
+      this.pickups = this.pickups.filter((pickup) => !pickup.taken);
     }
 
     hurt(amount) {
@@ -828,7 +952,7 @@
       this.hud.classList.add('hidden');
       this.touchLayer.classList.add('hidden');
       this.finalRound.textContent = `Round ${this.round}`;
-      this.finalScore.textContent = `${this.score} clears · ${VERSION}`;
+      this.finalScore.textContent = `${this.score} score · ${VERSION}`;
       this.gameOverScreen.classList.add('visible');
     }
 
