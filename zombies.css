@@ -1,0 +1,56 @@
+#move-zone {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 52%;
+  height: 100%;
+  pointer-events: auto;
+  touch-action: none;
+  z-index: 1;
+}
+
+#look-zone {
+  z-index: 1;
+}
+
+.stick {
+  z-index: 3;
+}
+
+.combat-button {
+  z-index: 4;
+}
+
+.power-card strong {
+  color: #ff6d53;
+}
+
+#zombies-mode-note {
+  position: fixed;
+  left: calc(12px + var(--safe-left));
+  top: calc(68px + var(--safe-top));
+  z-index: 11;
+  max-width: 260px;
+  padding: 9px 12px;
+  border: 1px solid rgba(255, 210, 120, 0.22);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.34);
+  color: rgba(255, 241, 210, 0.88);
+  font-size: 0.72rem;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+@media (orientation: landscape) {
+  #move-zone {
+    width: 46%;
+  }
+
+  #zombies-mode-note {
+    top: calc(54px + var(--safe-top));
+    max-width: 340px;
+  }
+}
