@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#0d1117" />
   <title>Zombie Runner</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=babylon-static-001" />
 </head>
 <body>
   <div id="game-shell">
@@ -15,10 +15,10 @@
       <div class="title-stack">
         <p class="eyebrow">Strawberry Games</p>
         <h1>Zombie Runner</h1>
-        <p class="subtitle">Mobile survival FPS. Hold the yard, clear the waves, and stay moving.</p>
+        <p class="subtitle">Babylon.js survival FPS. Static finite yard, mobile controls, wave pressure, no Three.js.</p>
       </div>
       <button id="start-button" class="primary-button">Tap to Start</button>
-      <p class="hint">Left thumb moves. Right side looks. Big action button tags enemies. Reload when empty.</p>
+      <p class="hint">Left thumb moves. Right side looks. Fire, sprint, and reload from the lower-right controls.</p>
     </section>
 
     <section id="game-over-screen" class="panel">
@@ -54,13 +54,7 @@
     </div>
   </div>
 
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"
-      }
-    }
-  </script>
-  <script type="module" src="src/app.js"></script>
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <script src="src/app.js?v=babylon-static-001" defer></script>
 </body>
 </html>
