@@ -3,10 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-  <meta name="theme-color" content="#0d1117" />
-  <title>Zombie Runner</title>
-  <link rel="stylesheet" href="styles.css?v=zombies-005b" />
-  <link rel="stylesheet" href="zombies.css?v=zombies-005b" />
+  <meta name="theme-color" content="#101926" />
+  <title>Zombie Runner Sideworld</title>
+  <link rel="stylesheet" href="styles.css?v=side2d-001" />
 </head>
 <body>
   <div id="game-shell">
@@ -16,48 +15,46 @@
       <div class="title-stack">
         <p class="eyebrow">Strawberry Games</p>
         <h1>Zombie Runner</h1>
-        <p class="subtitle">Round-based mobile survival FPS. Hold the yard, earn points, survive the waves.</p>
+        <p class="subtitle">Infinite 2D side-scroller. Explore the broken road, jump gaps, break barricades, and keep the infected off you.</p>
       </div>
       <button id="start-button" class="primary-button">Tap to Start</button>
-      <p class="hint">Drag the left side to move. Drag the right side to look. Fire, sprint, and reload from the lower-right controls.</p>
+      <p class="hint">Phone controls: hold LEFT or RIGHT, tap JUMP, hold FIRE. Keyboard also works: A/D, W/Space, J/K.</p>
     </section>
 
     <section id="game-over-screen" class="panel">
       <div class="title-stack">
         <p class="eyebrow danger">Overrun</p>
-        <h2 id="final-round">Round 1</h2>
-        <p id="final-score">0 points</p>
+        <h2 id="final-round">0m explored</h2>
+        <p id="final-score">0 infected dropped</p>
       </div>
       <button id="restart-button" class="primary-button">Run Again</button>
     </section>
 
     <div id="hud" class="hud hidden">
       <div class="hud-row top">
-        <div class="stat-card"><span>Round</span><strong id="round-value">1</strong></div>
-        <div class="stat-card"><span>Points</span><strong id="score-value">500</strong></div>
-        <div class="stat-card"><span>Active</span><strong id="active-value">0</strong></div>
+        <div class="stat-card"><span>Distance</span><strong id="round-value">0m</strong></div>
+        <div class="stat-card"><span>Kills</span><strong id="score-value">0</strong></div>
+        <div class="stat-card"><span>Threats</span><strong id="active-value">0</strong></div>
       </div>
       <div class="hud-row bottom">
         <div class="health-bar"><span id="health-fill"></span><em id="health-text">100</em></div>
-        <div class="ammo-card"><strong id="ammo-value">14 / 70</strong><span id="tool-state">M14 WALLBUY</span></div>
+        <div class="ammo-card"><strong id="ammo-value">READY</strong><span id="tool-state">SIDE2D</span></div>
       </div>
-      <div id="crosshair" aria-hidden="true"></div>
-      <div id="feedback-vignette"></div>
-      <div id="round-banner"></div>
+      <div id="round-banner">INFINITE ROAD</div>
     </div>
 
     <div id="touch-layer" class="hidden">
-      <div id="move-zone" aria-hidden="true"></div>
-      <div id="move-stick" class="stick"><div class="nub"></div></div>
-      <div id="look-zone"></div>
-      <button id="action-button" class="combat-button action">FIRE</button>
-      <button id="reload-button" class="combat-button reload">RELOAD</button>
-      <button id="sprint-button" class="combat-button sprint">SPRINT</button>
+      <div class="movement-cluster" aria-label="movement controls">
+        <button id="left-button" class="touch-button move">LEFT</button>
+        <button id="right-button" class="touch-button move">RIGHT</button>
+      </div>
+      <div class="action-cluster" aria-label="action controls">
+        <button id="jump-button" class="touch-button jump">JUMP</button>
+        <button id="fire-button" class="touch-button fire">FIRE</button>
+      </div>
     </div>
   </div>
 
-  <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script src="src/boot005.js?v=zombies-005b"></script>
-  <script src="src/app005.js?v=zombies-005b" defer></script>
+  <script src="src/side2d001.js?v=side2d-001" defer></script>
 </body>
 </html>
