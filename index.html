@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#0d1117" />
   <title>Zombie Runner</title>
   <link rel="stylesheet" href="styles.css?v=babylon-static-003" />
+  <link rel="stylesheet" href="zombies.css?v=zombies-004" />
 </head>
 <body>
   <div id="game-shell">
@@ -15,7 +16,7 @@
       <div class="title-stack">
         <p class="eyebrow">Strawberry Games</p>
         <h1>Zombie Runner</h1>
-        <p class="subtitle">Babylon.js survival FPS. Static finite yard, mobile controls, wave pressure, no Three.js.</p>
+        <p class="subtitle">Round-based mobile survival FPS. Hold the yard, rebuild the dead zone, and earn points through the waves.</p>
       </div>
       <button id="start-button" class="primary-button">Tap to Start</button>
       <p class="hint">Drag anywhere on the left side to move. Drag anywhere on the right side to look. Fire, sprint, and reload from the lower-right controls.</p>
@@ -25,7 +26,7 @@
       <div class="title-stack">
         <p class="eyebrow danger">Overrun</p>
         <h2 id="final-round">Round 1</h2>
-        <p id="final-score">0 clears</p>
+        <p id="final-score">0 points</p>
       </div>
       <button id="restart-button" class="primary-button">Run Again</button>
     </section>
@@ -33,7 +34,7 @@
     <div id="hud" class="hud hidden">
       <div class="hud-row top">
         <div class="stat-card"><span>Round</span><strong id="round-value">1</strong></div>
-        <div class="stat-card"><span>Score</span><strong id="score-value">0</strong></div>
+        <div class="stat-card"><span>Points</span><strong id="score-value">0</strong></div>
         <div class="stat-card"><span>Active</span><strong id="active-value">0</strong></div>
       </div>
       <div class="hud-row bottom">
@@ -46,6 +47,7 @@
     </div>
 
     <div id="touch-layer" class="hidden">
+      <div id="move-zone" aria-hidden="true"></div>
       <div id="move-stick" class="stick"><div class="nub"></div></div>
       <div id="look-zone"></div>
       <button id="action-button" class="combat-button action">FIRE</button>
@@ -56,5 +58,6 @@
 
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
   <script src="src/app.js?v=babylon-static-003" defer></script>
+  <script src="src/mobile-zombies-fix.js?v=zombies-004" defer></script>
 </body>
 </html>
