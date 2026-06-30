@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#0d1117" />
   <title>Zombie Runner</title>
-  <link rel="stylesheet" href="styles.css?v=babylon-static-003" />
-  <link rel="stylesheet" href="zombies.css?v=zombies-004" />
+  <link rel="stylesheet" href="styles.css?v=zombies-005" />
+  <link rel="stylesheet" href="zombies.css?v=zombies-005" />
 </head>
 <body>
   <div id="game-shell">
@@ -16,10 +16,10 @@
       <div class="title-stack">
         <p class="eyebrow">Strawberry Games</p>
         <h1>Zombie Runner</h1>
-        <p class="subtitle">Round-based mobile survival FPS. Hold the yard, rebuild the dead zone, and earn points through the waves.</p>
+        <p class="subtitle">Round-based mobile survival FPS. Hold the yard, earn points, survive the waves.</p>
       </div>
       <button id="start-button" class="primary-button">Tap to Start</button>
-      <p class="hint">Drag anywhere on the left side to move. Drag anywhere on the right side to look. Fire, sprint, and reload from the lower-right controls.</p>
+      <p class="hint">Drag the left side to move. Drag the right side to look. Fire, sprint, and reload from the lower-right controls.</p>
     </section>
 
     <section id="game-over-screen" class="panel">
@@ -34,12 +34,12 @@
     <div id="hud" class="hud hidden">
       <div class="hud-row top">
         <div class="stat-card"><span>Round</span><strong id="round-value">1</strong></div>
-        <div class="stat-card"><span>Points</span><strong id="score-value">0</strong></div>
+        <div class="stat-card"><span>Points</span><strong id="score-value">500</strong></div>
         <div class="stat-card"><span>Active</span><strong id="active-value">0</strong></div>
       </div>
       <div class="hud-row bottom">
         <div class="health-bar"><span id="health-fill"></span><em id="health-text">100</em></div>
-        <div class="ammo-card"><strong id="ammo-value">32 / 96</strong><span id="tool-state">RUNNER CARBINE</span></div>
+        <div class="ammo-card"><strong id="ammo-value">14 / 70</strong><span id="tool-state">M14 WALLBUY</span></div>
       </div>
       <div id="crosshair" aria-hidden="true"></div>
       <div id="feedback-vignette"></div>
@@ -57,7 +57,6 @@
   </div>
 
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script src="src/app.js?v=babylon-static-003" defer></script>
-  <script src="src/mobile-zombies-fix.js?v=zombies-004" defer></script>
+  <script src="src/app005.js?v=zombies-005" defer></script>
 </body>
 </html>
