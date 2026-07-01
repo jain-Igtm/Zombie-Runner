@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#070b12" />
+  <title>Escape World</title>
+  <link rel="stylesheet" href="./styles.css?v=escape-world-001" />
+</head>
+<body>
+  <canvas id="world-canvas"></canvas>
+
+  <section id="start-screen" class="panel visible">
+    <div class="title-card">
+      <p class="eyebrow">Strawberry Games Field Build</p>
+      <h1>Escape World</h1>
+      <p class="subtitle">A huge quiet 3D place to walk around in. No score, no enemies, no timer. Just coast, bridges, ruins, weather, light, and distance.</p>
+      <button id="start-button">Enter</button>
+      <p class="hint">Phone: left side moves, right side looks. Keyboard: WASD / arrows move, Shift glides faster.</p>
+    </div>
+  </section>
+
+  <div id="hud" class="hidden">
+    <div>
+      <strong id="place-name">Harbor Approach</strong>
+      <span id="place-detail">0m from origin</span>
+    </div>
+    <em id="version">escape-world-001</em>
+  </div>
+
+  <div id="controls" class="hidden">
+    <div id="move-pad" class="pad">
+      <span id="move-knob"></span>
+    </div>
+    <div id="look-pad" aria-label="look area"></div>
+  </div>
+
+  <script type="module" src="./src/escape-world.js?v=escape-world-001"></script>
+</body>
+</html>
